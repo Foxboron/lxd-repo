@@ -1,0 +1,16 @@
+pkgbase = dqlite
+	pkgdesc = Distributed SQLite
+	pkgver = 1.1.0
+	pkgrel = 1
+	url = https://github.com/CanonicalLtd/dqlite
+	arch = x86_64
+	license = Apache
+	depends = libuv
+	depends = sqlite
+	depends = raft
+	depends = libco
+	source = dqlite-1.1.0.tar.gz::https://github.com/canonical/dqlite/archive/v1.1.0.tar.gz
+	sha256sums = b03ad557a461beed90cd3d6c13fb9cceb35cdf686fb9b7a5c6db7fd3e7950563
+
+pkgname = dqlite
+
