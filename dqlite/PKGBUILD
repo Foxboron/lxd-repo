@@ -30,7 +30,7 @@ build() {
 		--disable-amalgamation \
 		--enable-static \
 		--disable-shared \
-		--prefix="$pkgdir/usr/share/dqlitesqlite-replication-static" \
+		--prefix="$srcdir/sqlite-replication-static" \
 		--enable-fts3 \
 		--enable-fts4 \
 		--enable-fts5 \
