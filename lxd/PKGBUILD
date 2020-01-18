@@ -42,8 +42,9 @@ build() {
 
 package() {
   cd "$pkgname-$pkgver"
+  mkdir -p "$pkgdir/usr/bin"
   for tool in fuidshift lxc lxc-to-lxd lxd lxd-agent lxd-benchmark lxd-p2c macaroon-identity; do
-    install -p -Dm755 "bin/$tool" "${pkgdir}/usr/bin"
+    install -p -Dm755 "bin/$tool" "${pkgdir}/usr/bin/"
   done
 
   # Package license
