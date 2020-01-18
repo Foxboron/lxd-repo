@@ -1,50 +1,22 @@
 # Maintainer: Thomas Hipp <thomashipp at gmail dot com>
 
 pkgname=dqlite
-pkgver=1.1.0
-_sqlite_ver=3.30.1
-_replication_ver=4
+pkgver=1.3.1
 pkgrel=1
 pkgdesc="Distributed SQLite"
 arch=('x86_64')
 url="https://github.com/CanonicalLtd/dqlite"
 license=('Apache')
-depends=('libuv' 'raft' 'libco')
+depends=('libuv' 'raft' 'libco' 'sqlite-replication')
 makedepends=('tcl' 'readline' 'zlib')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/canonical/${pkgname}/archive/v${pkgver}.tar.gz"
-	"https://github.com/canonical/sqlite/releases/download/version-${_sqlite_ver}%2Breplication${_replication_ver}/sqlite-src-${_sqlite_ver}.tar.gz")
-sha256sums=('b03ad557a461beed90cd3d6c13fb9cceb35cdf686fb9b7a5c6db7fd3e7950563'
-            'c1630a31df99c48be96d8152dbd420c79565f962777ebad9b7d4d492d19e7e3c')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/canonical/${pkgname}/archive/v${pkgver}.tar.gz")
+sha256sums=('45c47a5dfc8689640fba50cfa3a204e1e0807cab565faf74da5ac7ebb89b0dba')
 
 build() {
-	cd "sqlite-autoconf-3300100"
-	export CPPFLAGS="$CPPFLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
-				-DSQLITE_ENABLE_UNLOCK_NOTIFY \
-				-DSQLITE_ENABLE_DBSTAT_VTAB=1 \
-				-DSQLITE_ENABLE_FTS3_TOKENIZER=1 \
-				-DSQLITE_SECURE_DELETE \
-				-DSQLITE_MAX_VARIABLE_NUMBER=250000 \
-				-DSQLITE_MAX_EXPR_DEPTH=10000 \
-				-fPIC"
-	./configure \
-		--disable-amalgamation \
-		--enable-static \
-		--disable-shared \
-		--prefix="$srcdir/sqlite-replication-static" \
-		--enable-fts3 \
-		--enable-fts4 \
-		--enable-fts5 \
-		--enable-rtree \
-		--enable-json1 \
-		--enable-replication \
-		TCLLIBDIR=/usr/lib/sqlite$pkgver
-	make
-	make install
-	cd "${srcdir}/$pkgname-$pkgver"
-	export PKG_CONFIG_PATH="$srcdir/sqlite-replication-static/lib/pkgconfig"
+	cd "$pkgname-$pkgver"
 	autoreconf -i 
-	./configure --prefix=/usr
-	make
+	PKG_CONFIG_PATH="/usr/lib/sqlite-replication/pkgconfig" ./configure --prefix=/usr
+	make CFLAGS="-I/usr/include/sqlite-replication/" LDFLAGS="-L/usr/lib/sqlite-replication"
 }
 
 package() {
