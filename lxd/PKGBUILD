@@ -23,22 +23,19 @@ optdepends=(
     'ceph: for ceph storage driver support'
 )
 source=("${url}/releases/download/${pkgname}-${pkgver}/${pkgname}-${pkgver}.tar.gz"{,.asc}
-        "./ldflags.patch")
+        "lxd.socket"
+        "lxd.service")
 validpgpkeys=('602F567663E593BCBD14F338C638974D64792D67')
 sha256sums=('afc0b0912e5fa977007cfd97805849a3a47564eaaaa1638948081665ad7224c8'
             'SKIP'
-            'c29ca7d56785311204b612955b022e0f566f724bca48fbe86bee97efced30ebc')
-
-prepare() {
-    cd "$pkgname-$pkgver"
-    patch -Np1 < "../ldflags.patch"
-}
-
+            '8748ab5e6ee95e10023f32617c27956814e321173798e0bd066ff78999f51ed0'
+            'd9afa836e7754a2646150225b7c4b78b3240c7b4fde64fdf6a3ad3b7042feeb1')
 build() {
   export GOPATH="${srcdir}/${pkgname}-${pkgver}/_dist"
   cd "${GOPATH}/src/${_lxd}"
   export CGO_CFLAGS="-I/usr/include/sqlite-replication"
   export CGO_LDFLAGS="-L/usr/lib/sqlite-replication -Wl,-R/usr/lib/sqlite-replication"
+  export CGO_LDFLAGS_ALLOW='-Wl,-wrap,pthread_create'
   mkdir -p bin
   go build -trimpath -v -x -tags libsqlite3 -o bin/ ./...
 }
@@ -49,7 +46,6 @@ package() {
     install -p -Dm755 "bin/$tool" "${pkgdir}/usr/bin"
   done
 
-
   # Package license
   install -Dm644 "COPYING"  "${pkgdir}/usr/share/licenses/${_pkgname}/LICENCE"
 
@@ -58,10 +54,11 @@ package() {
   install -Dm644 "${srcdir}/lxd.socket" "${pkgdir}/usr/lib/systemd/system/lxd.socket"
 
   # documentation
-  install -Dm644 "doc/"* "${pkgdir}/usr/share/doc/lxd/"
+  mkdir -p "${pkgdir}/usr/share/doc/lxd"
+  install -p -Dm644 "doc/"* "${pkgdir}/usr/share/doc/lxd/"
 
   # Bash completions
-  install -p -Dm644 scripts/bash/lxd-client" "${pkgdir}/usr/share/bash-completion/completions/lxd"
+  install -p -Dm644 "scripts/bash/lxd-client" "${pkgdir}/usr/share/bash-completion/completions/lxd"
 }
 
 # vim:set ts=2 sw=2 et:
