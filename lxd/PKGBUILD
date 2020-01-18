@@ -1,6 +1,5 @@
-# Maintainer: Maikel Wever <maikelwever@gmail.com>
-# based on lxd-git package https://aur.archlinux.org/packages/lxd-git/
-# which in turn is based based on old version of this very package
+# Maintainer: Morten Linderud <foxboron@archlinux.org>
+# Contributor: Maikel Wever <maikelwever@gmail.com>
 # Contributor: Asterios Dimitriou <asterios@pci.gr>
 # Contributor: Benjamin Asbach <archlinux-aur.lxd@impl.it>
 # Contributer: nightuser <nightuser.android at gmail.com>
@@ -9,7 +8,7 @@ pkgname=lxd
 _pkgname=lxd
 _lxd=github.com/lxc/lxd
 pkgver=3.19
-pkgrel=1
+pkgrel=2
 pkgdesc="REST API, command line tool and OpenStack integration plugin for LXC."
 arch=('x86_64')
 url="https://github.com/lxc/lxd"
@@ -24,7 +23,8 @@ optdepends=(
 )
 source=("${url}/releases/download/${pkgname}-${pkgver}/${pkgname}-${pkgver}.tar.gz"{,.asc}
         "lxd.socket"
-        "lxd.service")
+        "lxd.service"
+        "lxd.sysusers")
 validpgpkeys=('602F567663E593BCBD14F338C638974D64792D67')
 sha256sums=('afc0b0912e5fa977007cfd97805849a3a47564eaaaa1638948081665ad7224c8'
             'SKIP'
@@ -60,6 +60,8 @@ package() {
 
   # Bash completions
   install -p -Dm644 "scripts/bash/lxd-client" "${pkgdir}/usr/share/bash-completion/completions/lxd"
+
+  install -Dm644 "${srcdir}/$pkgname.sysusers" "${pkgdir}/usr/lib/sysusers.d/$pkgname.conf"
 }
 
 # vim:set ts=2 sw=2 et:
