@@ -8,7 +8,7 @@ pkgname=lxd
 _pkgname=lxd
 _lxd=github.com/lxc/lxd
 pkgver=3.19
-pkgrel=2
+pkgrel=3
 pkgdesc="REST API, command line tool and OpenStack integration plugin for LXC."
 arch=('x86_64')
 url="https://github.com/lxc/lxd"
@@ -20,31 +20,45 @@ optdepends=(
     'thin-provisioning-tools: for thin provisioning support'
     'btrfs-progs: for btrfs storage driver support'
     'ceph: for ceph storage driver support'
+    'cdrtools: VM support'
+    'qemu: VM support'
+    'ovmf: VM support'
 )
-source=("${url}/releases/download/${pkgname}-${pkgver}/${pkgname}-${pkgver}.tar.gz"{,.asc}
+#"${url}/releases/download/${pkgname}-${pkgver}/${pkgname}-${pkgver}.tar.gz"{,.asc}
+source=("git+${url}.git#commit=f818c6d1c5933d791356f7f19eb33818f464e2df"
         "lxd.socket"
         "lxd.service"
         "lxd.sysusers")
-validpgpkeys=('602F567663E593BCBD14F338C638974D64792D67')
-sha256sums=('afc0b0912e5fa977007cfd97805849a3a47564eaaaa1638948081665ad7224c8'
-            'SKIP'
+#validpgpkeys=('602F567663E593BCBD14F338C638974D64792D67')
+sha256sums=('SKIP'
             '8748ab5e6ee95e10023f32617c27956814e321173798e0bd066ff78999f51ed0'
-            'd9afa836e7754a2646150225b7c4b78b3240c7b4fde64fdf6a3ad3b7042feeb1')
+            'eaaac8de0411fc9cb47a4f5d4290e499814693c54c9f3811dd19bbbcd06b6f62'
+            'd0184d9c4bb485e3aad0d4ac25ea7e85ac0f7ed6ddc96333e74fcd393a5b5ec4')
+
+
+prepare() {
+  mkdir -p "${srcdir}/go/src/github.com/lxc"
+  ln -rTsf "${_pkgname}" "${srcdir}/go/src/${_lxd}"
+}
+
 build() {
-  export GOPATH="${srcdir}/${pkgname}-${pkgver}/_dist"
+  #export GOPATH="${srcdir}/${pkgname}-${pkgver}/_dist"
+  export GOPATH="${srcdir}/go"
   cd "${GOPATH}/src/${_lxd}"
   export CGO_CFLAGS="-I/usr/include/sqlite-replication"
   export CGO_LDFLAGS="-L/usr/lib/sqlite-replication -Wl,-R/usr/lib/sqlite-replication"
   export CGO_LDFLAGS_ALLOW='-Wl,-wrap,pthread_create'
   mkdir -p bin
+  go get ./...
   go build -trimpath -v -x -tags libsqlite3 -o bin/ ./...
 }
 
 package() {
-  cd "$pkgname-$pkgver"
-  mkdir -p "$pkgdir/usr/bin"
+  #cd "$pkgname-$pkgver"
+  cd "$pkgname"
+
   for tool in fuidshift lxc lxc-to-lxd lxd lxd-agent lxd-benchmark lxd-p2c macaroon-identity; do
-    install -p -Dm755 "bin/$tool" "${pkgdir}/usr/bin/"
+    install -p -Dm755 "bin/$tool" "${pkgdir}/usr/bin/$tool"
   done
 
   # Package license
