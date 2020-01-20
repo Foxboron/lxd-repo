@@ -8,13 +8,13 @@ pkgname=lxd
 _pkgname=lxd
 _lxd=github.com/lxc/lxd
 pkgver=3.19
-pkgrel=3
+pkgrel=7
 pkgdesc="REST API, command line tool and OpenStack integration plugin for LXC."
 arch=('x86_64')
 url="https://github.com/lxc/lxd"
 license=('APACHE')
-depends=('lxc' 'lxcfs' 'squashfs-tools' 'dnsmasq' 'dqlite' 'libuv' 'sqlite-replication')
-makedepends=('go' 'git' 'tcl')
+depends=('lxc' 'lxcfs' 'squashfs-tools' 'dnsmasq' 'dqlite' 'libuv' 'sqlite-replication' 'ebtables')
+makedepends=('go' 'git' 'tcl' 'apparmor' 'libseccomp')
 optdepends=(
     'lvm2: for lvm2 support'
     'thin-provisioning-tools: for thin provisioning support'
@@ -25,7 +25,7 @@ optdepends=(
     'ovmf: VM support'
 )
 #"${url}/releases/download/${pkgname}-${pkgver}/${pkgname}-${pkgver}.tar.gz"{,.asc}
-source=("git+${url}.git#commit=f818c6d1c5933d791356f7f19eb33818f464e2df"
+source=("git+${url}.git#commit=d0b07867036a97a3ffeb106ffdb695a091c38291"
         "lxd.socket"
         "lxd.service"
         "lxd.sysusers")
@@ -48,16 +48,22 @@ build() {
   export CGO_CFLAGS="-I/usr/include/sqlite-replication"
   export CGO_LDFLAGS="-L/usr/lib/sqlite-replication -Wl,-R/usr/lib/sqlite-replication"
   export CGO_LDFLAGS_ALLOW='-Wl,-wrap,pthread_create'
+  go get -v ./...
+
   mkdir -p bin
-  go get ./...
-  go build -trimpath -v -x -tags libsqlite3 -o bin/ ./...
+	go build -trimpath -v -tags "netgo logdebug" -o bin/ ./lxd-p2c/...
+	go build -trimpath -v -tags "agent logdebug" -o bin/ ./lxd-agent/...
+
+  for tool in fuidshift lxc lxc-to-lxd lxd lxd-benchmark; do
+    go build -trimpath -v -tags "libsqlite3 logdebug" -o bin/ ./$tool/...
+  done
 }
 
 package() {
   #cd "$pkgname-$pkgver"
   cd "$pkgname"
 
-  for tool in fuidshift lxc lxc-to-lxd lxd lxd-agent lxd-benchmark lxd-p2c macaroon-identity; do
+  for tool in fuidshift lxc lxc-to-lxd lxd lxd-agent lxd-benchmark lxd-p2c; do
     install -p -Dm755 "bin/$tool" "${pkgdir}/usr/bin/$tool"
   done
 
